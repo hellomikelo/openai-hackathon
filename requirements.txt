@@ -67,7 +67,7 @@ httplib2==0.20.2
 graphviz==0.20.1
 python-dotenv
 google-api-python-client==2.70.0
-google-auth-httplib2=0.1.0
+google-auth-httplib2==0.1.0
 google-auth-oauthlib==0.8.0
 google-auth==2.15.0
 google-api-core==2.11.0
