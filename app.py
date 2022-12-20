@@ -201,7 +201,8 @@ if uploaded_file and generate_transcript:
         gdoc = GoogleDoc(creds)
 
         # img_file_name = 'diagram'
-        transcript = make_transcript(os.path.join(upload_path, uploaded_file.name))
+        # transcript = make_transcript(os.path.join(upload_path, uploaded_file.name))
+        transcript = make_transcript(os.path.join(upload_path, uploaded_file))
         summary = make_summary(transcript)
         metaphor = make_metaphor(summary)
         img_url = make_image(metaphor)
