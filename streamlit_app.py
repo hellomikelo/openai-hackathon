@@ -9,7 +9,7 @@ from pydub import AudioSegment
 import openai
 from dotenv import load_dotenv
 import graphviz
-from gdoc import GoogleDoc, delete_gdrive_img_file
+from gdoc import GoogleDoc, get_creds
 
 load_dotenv()
 
@@ -21,8 +21,8 @@ load_dotenv()
 # '<packagename>'])
 
 st.set_page_config(
-    page_title="Whisper & GPT-3",
-    page_icon="rocket",
+    page_title="distill.ai",
+    page_icon="alembic",
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -123,6 +123,28 @@ def make_questions_action_items(prompt, max_tokens=200):
 
 
 @st.cache(persist=True, allow_output_mutation=False, show_spinner=False, suppress_st_warning=True)
+def make_metaphor(prompt, max_tokens=200):
+    prompt = f'Generate a metaphor for the following concepts.\n\n"{prompt}"'
+    response = call_complete_api(prompt, max_tokens)
+    metaphor = response.choices[0].text
+    return metaphor
+
+
+@st.cache(persist=True, allow_output_mutation=False, show_spinner=False, suppress_st_warning=True)
+def make_image(metaphor, max_tokens=40):
+    prompt = f'describe the metaphor below as an photo in one bullet point.\n\n"{metaphor}"'
+    response = call_complete_api(prompt, max_tokens)
+    metaphor = response.choices[0].text
+    response = openai.Image.create(
+      prompt=metaphor.strip(),
+      n=1,
+      size="1024x1024"
+    )
+    image_url = response['data'][0]['url']
+    return image_url
+
+
+@st.cache(persist=True, allow_output_mutation=False, show_spinner=False, suppress_st_warning=True)
 def save_transcript(transcript_data, txt_file):
     with open(os.path.join(transcript_path, txt_file), "w") as f:
         f.write(transcript_data)
@@ -135,20 +157,6 @@ def make_graph(summary, img_file_name, max_tokens=500):
     response = call_complete_api(prompt, max_tokens)
     graph_plan = response.choices[0].text
     graph = graphviz.Digraph()
-#     graph_plan = """
-# graph.node('1', 'Human Brain Tends to Fixate on First Solution')
-# graph.node('2', 'Research Shows This isn"t Necessarily Best Idea')
-# graph.node('3', 'Shift Orientation Away From Finding Right Answer')
-# graph.node('4', 'Focus on Coming Up with Multiple Solutions')
-# graph.node('5', 'Idea Flow Expecting to Come up with Good Ideas')
-# graph.node('6', 'No Single Right Answers')
-#
-# graph.edge('1', '2', label='But')
-# graph.edge('2', '3', label='Therefore')
-# graph.edge('3', '4', label='Focus on')
-# graph.edge('4', '5', label='Leads to')
-# graph.edge('5', '6', label='Understand')
-#     """
     try:
         exec(graph_plan)
         graph.render(img_file_name, format='png', view=False)
@@ -161,9 +169,9 @@ audio_file = None
 # st.session_state['transcript'] = ''
 
 with st.sidebar:
-    st.title("Meeting Aid")
+    st.title("⚗️ Distiller")
     # st.info('✨ Supports all popular audio formats - WAV, MP3, MP4, OGG, WMA, AAC, FLAC, FLV 😉')
-    # st.write("Upload your audio file, then click on the button to transcribe and summarize the text in the audio.")
+    st.write("👋 What would you like to distill today?️")
     uploaded_file = st.file_uploader("Upload audio file",
                                      type=["wav", "mp3", "ogg", "wma", "aac", "flac", "mp4", "flv"])
     if uploaded_file:
@@ -181,10 +189,15 @@ with st.sidebar:
 
 if uploaded_file and generate_transcript:
     with st.spinner(f"Generating Transcript... 💫"):
-        img_file_name = 'diagram'
+        # Create Google Doc and add content
+        creds = get_creds()
+        gdoc = GoogleDoc(creds)
 
+        # img_file_name = 'diagram'
         transcript = make_transcript(os.path.join(upload_path, uploaded_file.name))
         summary = make_summary(transcript)
+        metaphor = make_metaphor(summary)
+        img_url = make_image(metaphor)
         action_items = make_questions_action_items(summary)
         title = make_title(summary)
         # make_graph(summary, img_file_name)
@@ -192,11 +205,12 @@ if uploaded_file and generate_transcript:
         # title = 'Meeting Aid Summary'
 
         # Put it all together
-        full_text = f"TRANSCRIPT:\n{transcript.strip()}\nSUMMARY:\n{summary.strip()}\nNEXT STEPS:\n{action_items.strip()}\n"
+        full_text = f"TRANSCRIPT OF CONVERSATION:\n{transcript.strip()}\nSUMMARY OF CONVERSATION:\n{summary.strip()}\nSOME NEXT STEPS TO CONSIDER:\n{action_items.strip()}\nA NICE METAPHOR TO ROUND IT OUT:\n{metaphor.strip()}\n"
 
-        # Create Google Doc and add content
-        gdoc = GoogleDoc()
-        doc_url, img_file_id = gdoc.create_doc(title, full_text, '') # f'{img_file_name}.png')
+        # W/O diagram
+        doc_url, img_file_id = gdoc.create_doc(title, full_text, img_file_id=img_url) # f'{img_file_name}.png')
+        # W diagram
+        # doc_url, img_file_id = gdoc.create_doc(title, full_text, f'{img_file_name}.png')
         st.markdown(f"See the audio transcript, summary, and analyses in this [Google Doc]({doc_url}).")
 
         # os.remove(img_file_name)
@@ -290,7 +304,7 @@ if uploaded_file and generate_transcript:
     # st.markdown(html, unsafe_allow_html=True)
 
 else:
-    st.warning("Please select a file on the left.")
+    st.warning("Please upload an audio file on the left.")
 
 
 
