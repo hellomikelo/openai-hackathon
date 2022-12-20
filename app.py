@@ -179,11 +179,10 @@ with st.sidebar:
     uploaded_file = st.selectbox(
         "👋 What would you like to distill today?️",
         ("TFTS-1.mp3", "TFTS-2.mp3", "TFTS-3.mp3", "TFTS-4.mp3"),
-        label_visibility=st.session_state.visibility,
-        disabled=st.session_state.disabled,
     )
     if uploaded_file:
-        audio_file = open(os.path.join(upload_path, uploaded_file.name), 'rb')
+        # audio_file = open(os.path.join(upload_path, uploaded_file.name), 'rb')
+        audio_file = open(os.path.join(upload_path, uploaded_file), 'rb')
         audio_bytes = audio_file.read()
         st.audio(audio_bytes, format='audio/ogg')
 
