@@ -170,10 +170,18 @@ audio_file = None
 
 with st.sidebar:
     st.title("⚗️ Distiller")
+
     # st.info('✨ Supports all popular audio formats - WAV, MP3, MP4, OGG, WMA, AAC, FLAC, FLV 😉')
-    st.write("👋 What would you like to distill today?️")
-    uploaded_file = st.file_uploader("Upload audio file",
-                                     type=["wav", "mp3", "ogg", "wma", "aac", "flac", "mp4", "flv"])
+    # st.write("👋 What would you like to distill today?️")
+    # uploaded_file = st.file_uploader("Upload audio file",
+    #                                  type=["wav", "mp3", "ogg", "wma", "aac", "flac", "mp4", "flv"])
+
+    uploaded_file = st.selectbox(
+        "👋 What would you like to distill today?️",
+        ("TFTS-1.mp3", "TFTS-2.mp3", "TFTS-3.mp3", "TFTS-4.mp3"),
+        label_visibility=st.session_state.visibility,
+        disabled=st.session_state.disabled,
+    )
     if uploaded_file:
         audio_file = open(os.path.join(upload_path, uploaded_file.name), 'rb')
         audio_bytes = audio_file.read()
