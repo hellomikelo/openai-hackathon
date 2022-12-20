@@ -132,7 +132,6 @@ dmypy.json
 .idea/
 
 # Audio files
-#*.mp3
 *.mp4
 *.json
 
