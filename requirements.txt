@@ -64,5 +64,5 @@ whisper @ git+https://github.com/openai/whisper.git@8cf36f3508c9acd341a45eb23642
 zipp==3.8.1
 openai
 httplib2==0.20.2
-graphviz==2.50.0
+graphviz==0.20.1
 python-dotenv
